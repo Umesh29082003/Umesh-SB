@@ -1,10 +1,11 @@
+//THIS FILE CONTAINS THE USER SCHEMA AND THE FUNCTION FOR THE JWT TOKEN TOO
 
 const mongoose =  require("mongoose")
 const bcrypt= require("bcryptjs")
 const jwt =require("jsonwebtoken")
 
 
-//User Model
+//User Model Schema
 const userSchema = new mongoose.Schema({
     firstname:{
         type: 'String',
@@ -55,7 +56,7 @@ const userSchema = new mongoose.Schema({
     }
 })
 
-//Securing User Password
+//Securing User Password by Bcrypt
 userSchema.pre("save", async function(next){
     
     const user = this
@@ -75,7 +76,7 @@ userSchema.pre("save", async function(next){
 })
 
 
-//json web token
+//Generat JWT(json web token)
 userSchema.methods.generateToken = async function(){
     try{
         return jwt.sign(
