@@ -1,3 +1,5 @@
+//THIS IS AN ANONYMOUS FILE TO FETCH TEXT FROM GFG
+
 const puppeteer = require('puppeteer');
 
 async function fetchGeeksforGeeksContent(topic) {
