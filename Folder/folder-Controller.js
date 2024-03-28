@@ -1,5 +1,10 @@
+//THIS FILE CONTAINS THE FUNCTION STO CREATE AND DELETE A FOLDER AND VIEW CONTENTS OF FOLDER
+
 const Folder = require('./folderModel');
-const User= require('.././User/userModel');
+const User = require('.././User/userModel');
+const Note = require('.././Note/noteModel');
+
+
 // Create a new folder
 exports.createFolder = async (req, res) => {
   try {
@@ -7,9 +12,9 @@ exports.createFolder = async (req, res) => {
 
       //Check if the folder exists  
     const existingFolder = await Folder.findOne({ name, created_by });
-      const user = await User.findById(created_by);
+    const user = await User.findById(created_by);
       
-    if (existingFolder && user) {
+    if (existingFolder && user && !existingFolder.deleted) {
       return res.status(400).json({ message: 'Folder already exists' });
       }
       
@@ -34,45 +39,42 @@ exports.createFolder = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-/*
+
+
+
 // Delete a folder
 exports.deleteFolder = async (req, res) => {
   try {
-    const { folderId } = req.params;
+    const { folderId } = req.body;
 
     // Find and delete the folder
-    await Folder.findByIdAndDelete(folderId);
+    await Folder.findByIdAndUpdate(folderId, { deleted: true });
 
-    res.status(200).json({ message: 'Folder deleted successfully' });
+    res.status(200).json({
+      message: 'Folder deleted and added to thrashbin',
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };
-*/
-/*
-// Add a note to a folder
-exports.addNoteToFolder = async (req, res) => {
-    try {
-        const {folderId, noteId}=req.body
-      /*
-    const { folderId} = req.params;
-    const { noteId } = req.body;*/
-/*
-    // Find the folder
-    const folder = await Folder.findById(folderId);
 
+
+
+//View Notes inside a folder
+exports.viewFolder = async (req, res) => {
+  try {
+    const { folderId } = req.body;
+    const folder = await Folder.findById(folderId);
     if (!folder) {
       return res.status(404).json({ message: 'Folder not found' });
     }
 
-    // Add the note to the folder's notes array
-    folder.notes.push(noteId);
-    await folder.save();
 
-    res.status(200).json({ message: 'Note added to folder successfully', folder });
+    const filteredNotes = await Note.find({ folder_id: folderId, deleted: false });
+    res.status(200).json(filteredNotes.map(note => note._id));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
-};*/
+};

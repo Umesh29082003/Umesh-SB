@@ -4,7 +4,7 @@ const mongoose =  require("mongoose")
 const bcrypt= require("bcryptjs")
 const jwt =require("jsonwebtoken")
 
-
+const Schema=mongoose.Schema
 //User Model Schema
 const userSchema = new mongoose.Schema({
     firstname:{
@@ -32,9 +32,10 @@ const userSchema = new mongoose.Schema({
     profile_picture:{
         type: Array //[name of collection whose object ]
     },
-    folders:{
-        type: Array
-    },
+    folders:[{
+        type: Schema.Types.ObjectId,
+        ref: 'Folder'
+    }],
     communities:{
         type: Array
     },

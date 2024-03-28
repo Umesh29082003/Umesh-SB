@@ -1,3 +1,5 @@
+//THIS FILE CONTAINS THE NOTE SCHEMA
+
 const mongoose = require('mongoose')
 
 const noteSchema = new mongoose.Schema({
@@ -22,6 +24,10 @@ const noteSchema = new mongoose.Schema({
     },
     shared_with:{
         type: Array //[name of collection whose object ]
+    },
+    deleted:{
+        type: Boolean,
+        default: false
     }
 })
 

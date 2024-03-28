@@ -1,5 +1,7 @@
+//THIS FILE CONTAINS THE FOLDER SCHEMA
+
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const Schema=mongoose.Schema;
 
 const folderSchema = new Schema({
   name: {
@@ -10,6 +12,10 @@ const folderSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User', // Assuming you have a User model
     required: true
+  },
+  deleted: {
+    type: Boolean,
+    default: false
   },
   notes: [{
     type: Schema.Types.ObjectId,
