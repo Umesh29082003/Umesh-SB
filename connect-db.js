@@ -6,7 +6,7 @@ require('dotenv').config();
 //const URI="mongodb://127.0.0.1:27017/mern-admin"
 
 //
-const URI ="mongodb+srv://webstudybuddy:CNxBE3HL2TftPZ1X@studybuddy.xsrhgk5.mongodb.net/New?retryWrites=true&w=majority&appName=StudyBuddy"
+const URI =process.env.CONN_STRING
 //"mongodb+srv://Umesh:"+process.env.DBPASS+"@cluster0.52wu20t.mongodb.net/"+process.env.DBNAME+"?retryWrites=true&w=majority&appName=Cluster0"
 
 const connectdb = async()=>{

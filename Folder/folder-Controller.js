@@ -14,28 +14,29 @@ exports.createFolder = async (req, res) => {
     const existingFolder = await Folder.findOne({ name, created_by });
     const user = await User.findById(created_by);
       
-    if (existingFolder && user && !existingFolder.deleted) {
-      return res.status(400).json({ message: 'Folder already exists' });
+    if (existingFolder) {
+      if (!existingFolder.deleted) {
+        return res.status(400).json({ message: 'Folder already exists' });
       }
+      else {
+        return res.status(400).json({ message: 'Folder already exists in your thrashbin' });
+      }
+    }
       
     // Create a new folder instance
-    const newFolder = new Folder({
+      const newFolder = new Folder({
       name,
       created_by
     });
 
     // Save the folder to the database
     await newFolder.save();
+    user.folders.push(newFolder._id);
+    await user.save();
 
-    if (user) {
-      user.folders.push(newFolder._id);
-      await user.save();
-    }
-      
     res.status(201).json({ message: 'Folder created successfully', folder: newFolder });
   }
   catch (error) {
-    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };

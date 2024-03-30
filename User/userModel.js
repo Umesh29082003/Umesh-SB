@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'Folder'
     }],
+    notes: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Note' // Assuming you have a Note model
+    }],
     communities:{
         type: Array
     },
