@@ -1,7 +1,7 @@
 //THIS FILE CONTAINS THE NOTE SCHEMA
 
 const mongoose = require('mongoose')
-
+const Schema=mongoose.Schema
 const noteSchema = new mongoose.Schema({
     title:{
         type: 'String',
@@ -33,6 +33,14 @@ const noteSchema = new mongoose.Schema({
     deleted:{
         type: Boolean,
         default: false
+    },
+    archived: {
+        type: Boolean,
+        default: false
+    },
+    topic: {
+        type: Schema.Types.ObjectId,
+        ref: 'Topic'
     }
 })
 

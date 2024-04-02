@@ -6,7 +6,7 @@ const router=express.Router()
 const auth=require("./User/auth-Controller")
 const note = require("./Note/note-Controller")
 const folder = require("./Folder/folder-Controller")
-const trash=require("./Trashbin/trash-Controller")
+const trash=require("./Document Handler/trash-Controller")
 const middleware = require("./middleware")
 
 const signupSchema= require("./User/signup-Schema")
@@ -17,11 +17,12 @@ router.route('/signup').post(validate(signupSchema),auth.signup)  //route to sig
 router.route('/login').post(auth.login)  //route to handle login page
 
 
-
 //To handle Folder
 router.route('/makefolder').post(middleware.authenticate,folder.createFolder) //route to create folder
 router.route('/deletefolder').patch(middleware.authenticate,folder.deleteFolder) //route to delete folder
 router.route('/viewfolder').get(middleware.authenticate,folder.viewFolder) //route to view folder
+router.route('/archivefolder').post(middleware.authenticate,folder.archiveFolder)
+
 
 //To handle Note
 router.route('/makenote').post(middleware.authenticate,note.saveNote) //route to handle note creation

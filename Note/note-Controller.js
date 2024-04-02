@@ -1,8 +1,9 @@
 const Note = require('./noteModel')
 const Folder = require('.././Folder/folderModel')
 const User = require('.././User/userModel')
+const Topic = require('.././Topic/topicModel')
 
-//Function to Create and Svae a Note
+//1 Function to Create and Svae a Note // Dont require folder id
 exports.saveNote = async (req, res) => {
     try {
         const { title, content, folder_id} = req.body;
@@ -106,4 +107,6 @@ exports.deleteNote = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 }
+
+//Function to Add Note to a Topic //
 

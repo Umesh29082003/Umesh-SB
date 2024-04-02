@@ -20,6 +20,14 @@ const folderSchema = new Schema({
   notes: [{
     type: Schema.Types.ObjectId,
     ref: 'Note' // Assuming you have a Note model
+  }],
+  archived: {
+    type: Boolean,
+    default: false
+  },
+  topics: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Topic'
   }]
 });
 
