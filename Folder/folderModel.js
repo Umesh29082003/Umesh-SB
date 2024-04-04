@@ -2,8 +2,6 @@
 
 const mongoose = require('mongoose');
 const Schema=mongoose.Schema;
-const Notes = require(".././Note/noteModel")
-const User = require(".././User/userModel")
 
 const folderSchema = new Schema({
   name: {
@@ -27,10 +25,10 @@ const folderSchema = new Schema({
     type: Boolean,
     default: false
   },
-  topics: [{
+  topic_id: {
     type: Schema.Types.ObjectId,
     ref: 'Topic'
-  }],
+  },
   deletedAt: {
     type: Date,
     default: null

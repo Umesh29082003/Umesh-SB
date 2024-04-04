@@ -28,7 +28,8 @@ const noteSchema = new mongoose.Schema({
         default: Date.now()
     },
     folder_id:{
-        type: Object,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Folder'
     },
     shared_with:{
         type: Array //[name of collection whose object ]
@@ -37,12 +38,16 @@ const noteSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    deletedAt: {
+        type: Date,
+        default: null
+    },
     archived: {
         type: Boolean,
         default: false
     },
-    topic: {
-        type: Schema.Types.ObjectId,
+    topic_id: {
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Topic'
     }
 })

@@ -25,15 +25,24 @@ router.route('/archivefolder').post(middleware.authenticate, folder.archiveFolde
 router.route("/recoverfolder").post(middleware.authenticate,folder.recoverFolder)   //route to recover folder from trashbin
 router.route("/unarchivefolder").post(middleware.authenticate, folder.unarchiveFolder)  //route to unarchive folder from trashbin
 router.route("/deletepermanently").post(middleware.authenticate,folder.deleteFolderPermanently) //toute to delete user permanently from trashbin
+router.route("/renamefolder").post(middleware.authenticate,folder.renameFolder)
 
 router.route("/addtotopic").post(middleware.authenticate,folder.addToTopic) //route to add a single folder to topics
-/*
-//To handle Note
-router.route('/makenote').post(middleware.authenticate,note.saveNote) //route to handle note creation
-router.route('/deletenote').patch(middleware.authenticate,) //route to handle note deletion
+
+
+router.route('/makenote').post(middleware.authenticate, note.saveNote) //route to handle note creation
+
+router.route('/deletenote').patch(middleware.authenticate,note.deleteNote) //route to handle note deletion
+router.route('/recovernote').post(middleware.authenticate, note.recoverNote)
+
 router.route('/viewnote').get(middleware.authenticate,note.viewNote) //route to view folder
 router.route('/updatenote').post(middleware.authenticate, note.updateNote) //route to update note
-*/
+
+router.route('/archivenote').post(middleware.authenticate, note.archiveNote)
+router.route('/unarchivenote').post(middleware.authenticate, note.unarchiveNote)
+
+//router.route('/deletepermanently').post(middleware.authenticate, note.updateNote)
+
 
 //To view user's documents
 
