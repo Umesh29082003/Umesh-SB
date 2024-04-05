@@ -24,16 +24,18 @@ router.route('/archivefolder').post(middleware.authenticate, folder.archiveFolde
 
 router.route("/recoverfolder").post(middleware.authenticate,folder.recoverFolder)   //route to recover folder from trashbin
 router.route("/unarchivefolder").post(middleware.authenticate, folder.unarchiveFolder)  //route to unarchive folder from trashbin
-router.route("/deletepermanently").post(middleware.authenticate,folder.deleteFolderPermanently) //toute to delete user permanently from trashbin
+router.route("/deletefolderpermanently").post(middleware.authenticate,folder.deleteFolderPermanently) //toute to delete user permanently from trashbin
 router.route("/renamefolder").post(middleware.authenticate,folder.renameFolder)
 
-router.route("/addtotopic").post(middleware.authenticate,folder.addToTopic) //route to add a single folder to topics
+router.route("/addtotopic").post(middleware.authenticate,folder.moveToTopic) //route to add a single folder to topics
 
 
+//To Handle Notes
 router.route('/makenote').post(middleware.authenticate, note.saveNote) //route to handle note creation
 
 router.route('/deletenote').patch(middleware.authenticate,note.deleteNote) //route to handle note deletion
 router.route('/recovernote').post(middleware.authenticate, note.recoverNote)
+router.route('/deletenotepermanently').post(middleware.authenticate, note.deleteNotePermanently)
 
 router.route('/viewnote').get(middleware.authenticate,note.viewNote) //route to view folder
 router.route('/updatenote').post(middleware.authenticate, note.updateNote) //route to update note
@@ -41,7 +43,11 @@ router.route('/updatenote').post(middleware.authenticate, note.updateNote) //rou
 router.route('/archivenote').post(middleware.authenticate, note.archiveNote)
 router.route('/unarchivenote').post(middleware.authenticate, note.unarchiveNote)
 
-//router.route('/deletepermanently').post(middleware.authenticate, note.updateNote)
+router.route('/movetofolder').post(middleware.authenticate, note.moveToFolder)
+router.route('/movetotopic').post(middleware.authenticate, note.moveToTopic)
+
+
+
 
 
 //To view user's documents

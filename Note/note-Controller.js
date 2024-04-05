@@ -3,6 +3,9 @@ const Folder = require('.././Folder/folderModel')
 const User = require('.././User/userModel')
 const Topic = require('.././Topic/topicModel')
 
+const {deleteNoteDependencies} = require('.././User/Documents/document-Controller')
+
+
 //1     Function to Create and Svae a Note // Dont require folder id
 exports.saveNote = async (req, res) => {
     try {
@@ -34,10 +37,12 @@ exports.saveNote = async (req, res) => {
                 }
                 topic_id = folder.topic_id
                 folder_id = folderId
+                topic = await Topic.findOne({ created_by: userId, _id: topic_id });
             }
             else if (topicId) { //Wishing to create a note in a topic
                 topic = await Topic.findOne({ created_by: userId, _id: topicId });
-                const folderInTopic= (topic.folders).filter(item=>item.toString());
+                const f = topic.folders
+                const folderInTopic= f.filter(item=>item.toString());
                 const noteInTopic = await Note.findOne({
                     created_by: userId,
                     topic_id: topicId,
@@ -70,6 +75,10 @@ exports.saveNote = async (req, res) => {
             if (folderId) { 
                 folder_id = folderId
                 folder = await Folder.findOne({ created_by: userId, _id: folderId });
+                if (folder.topic_id) {
+                    topic_id = folder.topic_id
+                    topic = await Topic.findOne({ created_by: userId, _id: folder.topic_id });
+                }
             }
             else if (topicId) {
                 topic_id = topicId
@@ -91,12 +100,11 @@ exports.saveNote = async (req, res) => {
             await folder.save();
         }
         if (newNote.topic_id) {
-            const updateTopic = await Topic.findOne({ created_by: userId, _id: newNote.topic_id })
-            updateTopic.notes.push(newNote._id);
-            await updateTopic.save();
+            topic.notes.push(newNote._id);
+            await topic.save();
         }
         await user.save();
-        res.status(200).json({ message: 'Note created successfully' });
+        res.status(200).json({ message: 'Note created successfully', note: newNote });
     }
     catch (error) {
         console.error(error);
@@ -114,7 +122,7 @@ exports.viewNote = async (req, res) => {
             res.status(404).json({ message: 'Note not found' });
         }
         else {
-            res.status(200).json(note.content);
+            res.status(200).json({ title: note.title, content: note.content, color: note.color });
         }
     }
     catch (error) {
@@ -127,13 +135,15 @@ exports.viewNote = async (req, res) => {
 //3.    Function to Update a Note
 exports.updateNote = async (req, res) => { 
     try {
-        const { noteId, content, userId } = req.body;
+        const { noteId, content, newtitle, newcolor, userId } = req.body;
         const note = await Note.findById(noteId);
         if (!note) {
             res.status(404).json({ message: 'Note not found' });
         }
         else {
-            note.content = content;
+            if (content) { note.content = content; }
+            if (newtitle) { note.title = newtitle }
+            if (newcolor) { note.color = newcolor }
             note.updated_at = Date.now();
             await note.save();
             const user = await User.findById(note.created_by);
@@ -166,14 +176,14 @@ exports.deleteNote = async (req, res) => {
             note.deletedAt = new Date();  //update time of deletion
             await note.save();
 
-            res.status(200).json({
+            return res.status(200).json({
                 message: 'Note deleted and added to thrashbin',
             });
         }
     }
   catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -195,14 +205,14 @@ exports.archiveNote = async (req, res) => {
             note.archived = true;
             await note.save();
 
-            res.status(200).json({
+            return res.status(200).json({
                 message: 'Note archived',
             });
         }
     }
   catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -226,16 +236,18 @@ exports.recoverNote = async (req, res) => {
             note.deletedAt =null
             await note.save();
 
-            res.status(200).json({
+            return res.status(200).json({
                 message: 'Note recovered',
             });
         }
     }
   catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
+
+
 
 //7.    Function to Unarchive a Note
 exports.unarchiveNote = async (req, res) => {
@@ -255,16 +267,133 @@ exports.unarchiveNote = async (req, res) => {
             note.archived = false;
             await note.save();
 
-            res.status(200).json({
+            return res.status(200).json({
                 message: 'Note deleted and added to thrashbin',
             });
         }
     }
   catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
-//Function to Add Note to a Topic //
+
+
+//8.     Function to delete Note Permanently
+ exports.deleteNotePermanently = async (req, res) => {
+    try {
+        const { noteId, userId } = req.body;
+        const note = await Note.findById(noteId);
+        if (!note) {
+            res.status(404).json({ message: 'Note not found' });
+        }
+        else {
+            await deleteNoteDependencies(note);
+            await Note.findByIdAndDelete(noteId);
+            res.status(200).json({message:'Note Deleted Permanently'});
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+//9.    Function to Add Note to a Folder 
+exports.moveToFolder = async (req, res) => { 
+    try {
+        const { noteId, folderId, userId } = req.body;
+        const note = await Note.findById(noteId);
+        if (!note) {
+            res.status(404).json({ message: 'Note not found' });
+        }
+        else {
+            const folder = await Folder.findById(folderId);
+            if (!folder) {
+                res.status(404).json({ message: 'Folder not found' });
+            }
+            else {
+                const existingNotes = await Note.find({ _id: { $in: folder.notes } }, { title: 1 });
+
+                for (const existingNote of existingNotes) {
+                    if (existingNote.title === note.title) {
+                        return res.status(400).json({ message: 'Note with the same name already exists in the folder' });
+                    }
+                }
+
+                const alraedyin = await Folder.findById(note.folder_id)
+                const alreadyintopic= await Topic.findById(note.topic_id)
+                if (alraedyin) {
+                    alraedyin.notes.pull(note._id)
+                    await alraedyin.save()
+                }
+                if (alreadyintopic) {
+                    alreadyintopic.notes.pull(note._id)
+                    await alreadyintopic.save()
+                }
+                folder.notes.push(noteId);
+                const topic = await Topic.findById(folder.topic_id)
+                if (topic) {
+                    topic.notes.push(noteId);
+                    await topic.save();
+                }
+                await folder.save();
+                note.folder_id = folder._id;
+                note.topic_id = folder.topic_id
+                note.updated_at = Date.now();
+                await note.save();
+                res.status(200).json({message:'Note Added to Folder'});
+            }
+        }
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
+
+//10.   Function to Add Note to a Topic 
+exports.moveToTopic = async (req, res) => { 
+    try {
+        const { noteId, topicId, userId } = req.body;
+        const note = await Note.findById(noteId);
+        if (!note) {
+            res.status(404).json({ message: 'Note not found' });
+        }
+        else {
+            const topic = await Topic.findById(topicId);
+            if (!topic) {
+                res.status(404).json({ message: 'Topic not found' });
+            }
+            else {
+                const existingNotes = await Note.find({ _id: { $in: topic.notes }, folder_id: null }, { title: 1 });
+                
+                for (const existingNote of existingNotes) {
+                    if (existingNote.title === note.title) {
+                        return res.status(400).json({ message: 'Note with the same name already exists in the topic' });
+                    }
+                }
+                const infolder = await Folder.findById(note.folder_id)
+                if (infolder) {
+                    note.folder_id=null
+                    infolder.notes.pull(noteId);
+                    await infolder.save();
+                }
+                topic.notes.push(noteId);
+                note.topic_id = topic._id
+                note.updated_at = Date.now()
+                await note.save();
+                await topic.save()
+                res.status(200).json({ message: 'Note Added to Topic' });
+            }
+        }
+        
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+}
 

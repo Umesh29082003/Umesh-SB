@@ -28,7 +28,7 @@ const noteSchema = new mongoose.Schema({
         default: Date.now()
     },
     folder_id:{
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Folder'
     },
     shared_with:{
@@ -47,8 +47,12 @@ const noteSchema = new mongoose.Schema({
         default: false
     },
     topic_id: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Topic'
+    },
+    color: {
+        type: String,
+        default: '#DOD5DD'
     }
 })
 
