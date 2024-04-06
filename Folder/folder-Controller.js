@@ -4,40 +4,40 @@ const Folder = require('./folderModel');
 const User = require('.././User/userModel');
 const Note = require('.././Note/noteModel');
 const Topic = require('.././Topic/topicModel')
-const {deleteFolderDependencies, deleteNotesInFolder} = require('.././User/Documents/document-Controller')
+const {deleteFolderDependencies, deleteNotesInFolder} = require('../User/document-Controller')
 //1.  Create a new folder  
 exports.createFolder = async (req, res) => {
   try {
     const { name, userId, topicId } = req.body;
       
-    const existingFolder = await Folder.findOne({ name, created_by: userId });
+    const existingFolder = await Folder.findOne({ name, created_by: userId });//Find if folder already exists anywhere(by user)
     const user = await User.findById(userId);
-    let topic_id = null;
+    let topic_id = null;  //to be updated in db
     let topic
-    if (topicId) {
-        topic = await Topic.findOne({ created_by: userId, _id: topicId });
+    if (topicId) {  //Wanna create a folder indide a topic
+        topic = await Topic.findOne({ created_by: userId, _id: topicId });  //Find Topic if it exists
         if (!topic) {
             return res.status(404).json({ message: 'Topic not found' });
         }
 
-        topic_id = topicId;
+        topic_id = topicId; //This topicID is to be updated in the new Folder to be created// if no topic Id is given then it would have been null i.e user is trying to create a FOLDER outside of any topic
         const existingFolderInTopic = await Folder.findOne({ name, created_by: userId, topic_id });
 
-        if (existingFolderInTopic) {
-          if (!existingFolderInTopic.deleted && !existingFolderInTopic.archived) {
+        if (existingFolderInTopic) {  //If folder with same name exists in the topic
+          if (!existingFolderInTopic.deleted && !existingFolderInTopic.archived) {  //If physically exists
             return res.status(400).json({ message: 'Folder with the same name already exists in this topic' });
           }
-          if (existingFolderInTopic.deleted || existingFolderInTopic.archived) {
+          if (existingFolderInTopic.deleted || existingFolderInTopic.archived) {  //If virtually exists in trash or archives
             return res.status(400).json({ message: 'Folder with the same name already exists in your thrashbin or archives' });
           }
         }
     }
 
-    else if (existingFolder && existingFolder.topic_id==null) {
-        if (!existingFolder.deleted && !existingFolder.archived) {
+    else if (existingFolder && existingFolder.topic_id==null) { //If folder exists but not in any topic
+        if (!existingFolder.deleted && !existingFolder.archived) {  //If exists physically
             return res.status(400).json({ message: 'Folder with the same name already exists' });
         }
-        else
+        else  //if exists in trash or archives
         {
             return res.status(400).json({ message: 'Folder with the same name already exists in your thrashbin or archives' });
         }
@@ -54,7 +54,7 @@ exports.createFolder = async (req, res) => {
     user.folders.push(newFolder._id); //update user's folders list
     await user.save();
     
-    if (topic_id) {
+    if (topic_id) { //IF topic_id is not null then update that topic's folders attribute
         if (topic) {
             topic.folders.push(newFolder._id) //update topic's folders list
             await topic.save();
@@ -209,29 +209,27 @@ exports.viewFolder = async (req, res) => {
 exports.moveToTopic = async (req, res) => { 
     try {
         const { folderId, topicId, userId } = req.body;
-        const folder = await Folder.findById(folderId);
+        const folder = await Folder.findById(folderId);   //Find the folder
         if (!folder) {
-            res.status(404).json({ message: 'Note not found' });
+            res.status(404).json({ message: 'Folder not found' });
         }
-        else {
-            const topic = await Topic.findById(topicId);
+        else {  //If folder exist
+            const topic = await Topic.findById(topicId);  //Find topic
             if (!topic) {
               res.status(404).json({ message: 'Topic not found' });
             }
-            else {
-              const existingFolders = await Folder.find({ _id: { $in: topic.folders } }, { name: 1 });
-                
-              for (const existingFolder of existingFodlers) {
-                if (existingFolder.name === folder.name) {
-                  return res.status(400).json({ message: 'Note with the same name already exists in the topic' });
-                  }
-              }           
-              topic.folders.push(folderId);
-              const notes = await Note.find({ _id: { $in: folder.notes } })
-              for (const note of notes) {
-                note.topic_id = topic._id
-                topic.notes.push(note._id);
-                note.updated_at = Date.now();
+            else {  //If topic found
+              const existingFolders = await Folder.find({_id: { $in: topic.folders },name: folder.name },{ name: 1 });   // Match folders with the same name       
+              if (existingFolders.length > 0) { //If match exists
+                return res.status(400).json({ message: 'Note with the same name already exists in the topic' });
+              } 
+
+              topic.folders.push(folderId);   //push folderid to the topic's folders array
+              const notes = await Note.find({ _id: { $in: folder.notes } }) //Find notes in the folder
+              for (const note of notes) { //For all the notes in the folder
+                note.topic_id = topic._id //Update topic_id of each note
+                topic.notes.push(note._id); //push noteid to the topic's notes array
+                note.updated_at = Date.now(); //Update data of updation
                 await note.save();
                 await topic.save();
               }

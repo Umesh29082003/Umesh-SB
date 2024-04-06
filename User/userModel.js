@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema({
         }],
         validate: {
             validator: function(val) {
-                return val.length <= 12;
+                return val.length <= 12;    //one can create max 6 topics as 6 are already provided
             },
             message: 'Topics array cannot exceed 12 elements'
         }
@@ -71,7 +71,7 @@ const userSchema = new mongoose.Schema({
 })
 
 //Securing User Password by Bcrypt
-userSchema.pre("save", async function(next){
+userSchema.pre("save", async function(next){    //On creating user
     
     const user = this
     if(!user.isModified("password")){
@@ -82,12 +82,12 @@ userSchema.pre("save", async function(next){
         const hashPassword = await bcrypt.hash(user.password, saltRound)
         user.password = hashPassword
 
-        if (this.isNew) {
+        if (this.isNew) {   //only runs for the first time when user is created
             const defaultTopics = ["Biology", "Physics", "Chemistry", "IT and Software", "Mathematics", "Cloud Computing"];
             const userId = this._id;
         
             // Create default topics for the new user
-            await Promise.all(defaultTopics.map(async topicName => {
+            await Promise.all(defaultTopics.map(async topicName => {    //Make 6 default topics
                 const topic = new Topic({
                     name: topicName,
                     created_by: userId
